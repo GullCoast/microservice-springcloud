@@ -9,3 +9,5 @@ eureka:
     service-url:
       defaultZone:
         http://${eureka.instance.hostname}:${server.port}/eureka
+  server:
+    enable-self-preservation: false  # Eureka Server的自我保护机制回事注册中心锁维护的实例不是很准确，在本地开发中关闭保护机制，一确保注册中心可以将不可用的实例正确删除
