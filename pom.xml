@@ -10,6 +10,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>microservice-eureka-server</module>
+        <module>microservice-eureka-user</module>
     </modules>
 
     <parent>
@@ -22,7 +23,7 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <spring-cloud.version>2025.1.0</spring-cloud.version>
+        <spring-cloud.version>2025.0.0</spring-cloud.version>
     </properties>
 
     <dependencyManagement>
