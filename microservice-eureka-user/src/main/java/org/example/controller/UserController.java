@@ -25,9 +25,7 @@ public class UserController {
      */
     @GetMapping("/findOrdersByUser/{id}")
     public String findOrdersByUser(@PathVariable String id) {
-        // 假设用户只有一个订单，并且订单 id 为 123
-        int oid = 123;
         return this.restTemplate
-                .getForObject("http://localhost:7900/order/" + oid, String.class);
+                .getForObject("http://microservice-eureka-order/order/" + id, String.class);  // 使用注册中心单独订单服务实例名称
     }
 }
