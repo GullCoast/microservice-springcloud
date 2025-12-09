@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @SpringBootApplication
-@EnableDiscoveryClient
+@EnableDiscoveryClient // 通用注解，Nacos 和 Eureka 都支持
 @RestController
 public class OrderApplication {
 

@@ -9,7 +9,7 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>microservice-eureka-order</artifactId>
+    <artifactId>microservice-nacos-order</artifactId>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -19,8 +19,12 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

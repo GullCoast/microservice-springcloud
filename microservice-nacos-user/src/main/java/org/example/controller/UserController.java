@@ -26,6 +26,6 @@ public class UserController {
     @GetMapping("/findOrdersByUser/{id}")
     public String findOrdersByUser(@PathVariable String id) {
         return this.restTemplate
-                .getForObject("http://microservice-eureka-order/order/" + id, String.class);  // 使用注册中心单独订单服务实例名称
+                .getForObject("http://microservice-nacos-order/order/" + id, String.class);  // 使用注册中心单独订单服务实例名称
     }
 }

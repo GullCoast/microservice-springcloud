@@ -10,8 +10,8 @@
     <packaging>pom</packaging>
     <modules>
         <module>microservice-eureka-server</module>
-        <module>microservice-eureka-user</module>
-        <module>microservice-eureka-order</module>
+        <module>microservice-nacos-user</module>
+        <module>microservice-nacos-order</module>
     </modules>
 
     <parent>
@@ -25,6 +25,7 @@
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring-cloud.version>2025.0.0</spring-cloud.version>
+        <spring-cloud-alibaba.version>2025.0.0.0</spring-cloud-alibaba.version>
     </properties>
 
     <dependencyManagement>
@@ -33,6 +34,13 @@
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
                 <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba.cloud</groupId>
+                <artifactId>spring-cloud-alibaba-dependencies</artifactId>
+                <version>${spring-cloud-alibaba.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
