@@ -44,6 +44,17 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <!-- 添加 Sentinel 版本管理 -->
+            <dependency>
+                <groupId>com.alibaba.csp</groupId>
+                <artifactId>sentinel-core</artifactId>
+                <version>1.8.9</version>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba.csp</groupId>
+                <artifactId>sentinel-transport-simple-http</artifactId>
+                <version>1.8.9</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
