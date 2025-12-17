@@ -5,6 +5,7 @@ import com.alibaba.csp.sentinel.slots.block.degrade.DegradeRule;
 import com.alibaba.csp.sentinel.slots.block.degrade.DegradeRuleManager;
 import com.alibaba.csp.sentinel.slots.block.degrade.circuitbreaker.CircuitBreakerStrategy;
 import jakarta.annotation.PostConstruct;
+import org.example.api.dto.UserDTO;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -44,6 +45,22 @@ public class UserController {
         long sleepTime = (long) (Math.random() * 3000);  // 0-3秒
         TimeUnit.MILLISECONDS.sleep(sleepTime);
         return "正常响应，耗时：" + sleepTime + "ms";
+    }
+
+    @GetMapping("/api/users/{userId}")
+    public UserDTO getUserById(@PathVariable Long userId) {
+        // 模拟返回用户数据
+        return UserDTO.builder()
+                .id(userId)
+                .name("模拟用户" + userId)
+                .email("user" + userId + "@test.com")
+                .build();
+    }
+
+    @GetMapping("/api/users/check/{userId}")
+    public Boolean checkUserExists(@PathVariable Long userId) {
+        // 模拟用户检查：ID>0的用户存在
+        return userId != null && userId > 0;
     }
 
     // 降级方法

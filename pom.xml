@@ -12,6 +12,7 @@
         <module>microservice-eureka-server</module>
         <module>microservice-nacos-user</module>
         <module>microservice-nacos-order</module>
+        <module>microservice-api</module>
     </modules>
 
     <parent>
@@ -55,6 +56,19 @@
                 <artifactId>sentinel-transport-simple-http</artifactId>
                 <version>1.8.9</version>
             </dependency>
+<!--            <dependency>-->
+<!--                <groupId>org.springframework.cloud</groupId>-->
+<!--                <artifactId>spring-cloud-starter-openfeign</artifactId>-->
+<!--                <version>${spring-cloud.version}</version>-->
+<!--            </dependency>-->
+
+            <!-- HTTP 客户端支持（OpenFeign 需要） -->
+<!--            <dependency>-->
+<!--                <groupId>io.github.openfeign</groupId>-->
+<!--                <artifactId>feign-httpclient</artifactId>-->
+<!--                <version>13.5</version>-->
+<!--            </dependency>-->
+
         </dependencies>
     </dependencyManagement>
 

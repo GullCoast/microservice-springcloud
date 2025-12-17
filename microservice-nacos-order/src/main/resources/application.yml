@@ -12,12 +12,30 @@ spring:
         ephemeral: true  # 是否为临时实例
     sentinel:
       transport:
-        # Sentinel Dashboard 地址（需要单独部署）
-        dashboard: localhost:8080
-        # 服务与控制台交互的端口
-        port: 8719
+        dashboard: localhost:8080   # Sentinel Dashboard 地址（需要单独部署）
+        port: 8719   # 服务与控制台交互的端口
       # 开启对 Spring MVC 端点的保护
       filter:
         enabled: true
       # 取消控制台懒加载
       eager: true
+
+    openfeign:
+      httpclient:
+        enabled: true
+        max-connections: 200  # 线程池最大连接数
+        max-connections-per-route: 50  # 单个请求路径的最大连接数
+
+feign:
+  client:
+    config:
+      default: # 对所有 Feign 客户端生效
+        logger-level: full  # 日志级别。调试时使用，生产环境不建议
+  # 开启 Sentinel 对 Feign 的支持
+  sentinel:
+    enabled: true
+
+# 可选：Feign 日志（调试用）
+logging:
+  level:
+    org.example.feign.UserClient: DEBUG

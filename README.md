@@ -1,11 +1,12 @@
 # 微服务示例项目（Nacos 版本）
 
 ## 项目描述
-这是一个基于Spring Cloud Alibaba的微服务演示项目，使用 **Nacos** 作为服务注册中心，**Sentinel** 作为流量控制与熔断降级组件，包含两个业务微服务，演示了微服务架构中的服务注册、发现、负载均衡、HTTP调用以及Sentinel的熔断与降级策略。
+这是一个基于Spring Cloud Alibaba的微服务演示项目，使用 **Nacos** 作为服务注册中心，**Sentinel** 作为流量控制与熔断降级组件，**OpenFeign** 作为声明式HTTP客户端，包含两个业务微服务，演示了微服务架构中的服务注册、发现、负载均衡、HTTP调用以及Sentinel的熔断与降级策略。
 
 ## 项目结构
 ```
 microservice-springcloud/                    # 父项目
+├── microservice-api/                       # API模块（共享DTO定义）
 ├── microservice-nacos-order/               # 订单微服务（端口：7900/7901）
 └── microservice-nacos-user/                # 用户微服务（端口：8000）
 # 注意：Nacos为独立服务，不再需要注册中心模块
@@ -196,3 +197,209 @@ String url = "http://microservice-nacos-order/order/" + id;
 ✅ **功能正常**：服务注册、发现、负载均衡、熔断降级  
 
 **注意**：确保Nacos Server已启动，否则服务无法注册。Sentinel Dashboard为可选组件，用于可视化监控。
+
+---
+**2025.12.17 更新：新增 OpenFeign**
+## OpenFeign 集成说明
+
+### 1. 核心功能
+✅ **声明式HTTP客户端**：通过接口注解定义服务调用  
+✅ **自动负载均衡**：集成Spring Cloud LoadBalancer  
+✅ **Sentinel熔断**：支持服务降级和流量控制  
+✅ **连接池优化**：使用Apache HttpClient提升性能  
+✅ **详细日志**：支持请求/响应的完整日志输出
+
+### 2. 配置文件详解
+```yaml
+feign:
+  sentinel:
+    enabled: true  # 启用Sentinel支持
+    
+  client:
+    config:
+      default:
+        logger-level: full  # 日志级别：NONE, BASIC, HEADERS, FULL
+
+spring:
+  cloud:
+    openfeign:
+      httpclient:
+        enabled: true
+        max-connections: 200
+        max-connections-per-route: 50
+
+logging:
+  level:
+    org.example.feign.UserClient: DEBUG  # Feign客户端调试日志
+```
+
+### 3. 使用步骤
+#### 步骤1：定义Feign客户端接口
+```java
+@FeignClient(
+    name = "microservice-nacos-user",
+    fallback = UserClientFallback.class
+)
+public interface UserClient {
+    @GetMapping("/api/users/{userId}")
+    UserDTO getUserById(@PathVariable("userId") Long userId);
+    
+    @GetMapping("/api/users/check/{userId}")
+    Boolean checkUserExists(@PathVariable("userId") Long userId);
+}
+```
+
+#### 步骤2：实现熔断降级类
+```java
+@Component
+public class UserClientFallback implements UserClient {
+    @Override
+    public UserDTO getUserById(Long userId) {
+        log.warn("用户服务调用失败，触发降级，userId: {}", userId);
+        return UserDTO.builder()
+                .id(userId)
+                .name("默认用户")
+                .email("default@example.com")
+                .build();
+    }
+    
+    @Override
+    public Boolean checkUserExists(Long userId) {
+        log.warn("用户服务调用失败，返回默认值");
+        return false;
+    }
+}
+```
+
+#### 步骤3：启用Feign客户端
+```java
+@SpringBootApplication
+@EnableFeignClients(basePackages = "org.example.feign")
+public class OrderApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(OrderApplication.class, args);
+    }
+}
+```
+
+### 4. 实际测试结果
+#### 测试接口1：获取订单及用户信息
+**请求**：
+```bash
+GET http://localhost:7900/order/1/with-user
+```
+
+**响应**：
+```json
+{
+  "user": {
+    "id": 1,
+    "name": "模拟用户1",
+    "email": "user1@test.com"
+  },
+  "order": {
+    "id": 1,
+    "orderNo": "ORD001",
+    "userId": 1,
+    "amount": 100.5
+  },
+  "timestamp": 1765901213953
+}
+```
+
+#### 测试接口2：Feign功能测试
+**请求**：
+```bash
+GET http://localhost:7900/order/test-feign/6
+```
+
+**响应**：
+```json
+{
+  "userExists": true,
+  "userInfo": {
+    "id": 6,
+    "name": "模拟用户6",
+    "email": "user6@test.com"
+  },
+  "testOrder": {
+    "id": 1765901113440,
+    "orderNo": "TEST-1765901113440",
+    "userId": 6,
+    "amount": 99.99
+  },
+  "message": "Feign 调用成功!"
+}
+```
+
+### 5. 详细日志分析
+#### 正常调用日志示例：
+```
+2025-12-17T15:52:43.024+08:00 DEBUG : [UserClient#getUserById] ---> GET http://microservice-nacos-user/api/users/1 HTTP/1.1
+2025-12-17T15:52:43.024+08:00 DEBUG : [UserClient#getUserById] ---> END HTTP (0-byte body)
+2025-12-17T15:52:43.463+08:00 DEBUG : [UserClient#getUserById] <--- HTTP/1.1 200 (439ms)
+2025-12-17T15:52:43.464+08:00 DEBUG : [UserClient#getUserById] connection: keep-alive
+2025-12-17T15:52:43.464+08:00 DEBUG : [UserClient#getUserById] content-type: application/json
+2025-12-17T15:52:43.464+08:00 DEBUG : [UserClient#getUserById] date: Wed, 17 Dec 2025 07:52:43 GMT
+2025-12-17T15:52:43.464+08:00 DEBUG : [UserClient#getUserById] keep-alive: timeout=60
+2025-12-17T15:52:43.464+08:00 DEBUG : [UserClient#getUserById] transfer-encoding: chunked
+2025-12-17T15:52:43.466+08:00 DEBUG : [UserClient#getUserById] {"id":1,"name":"模拟用户1","email":"user1@test.com"}
+2025-12-17T15:52:43.466+08:00 DEBUG : [UserClient#getUserById] <--- END HTTP (56-byte body)
+```
+
+#### 日志解读：
+- **请求发起**：`GET http://microservice-nacos-user/api/users/1`
+- **耗时统计**：`439ms` 完成调用
+- **响应头**：包含连接、内容类型、日期等信息
+- **响应体**：`{"id":1,"name":"模拟用户1","email":"user1@test.com"}`
+- **数据大小**：`56-byte body`
+
+
+### 6. 性能优化建议
+1. **连接池配置**：根据并发量调整`max-connections`和`max-connections-per-route`
+2. **超时设置**：可在配置文件中添加超时配置防止长时间等待
+3. **日志级别**：生产环境建议使用`BASIC`或`NONE`级别减少日志量
+4. **服务降级准备**：虽然暂未测试，但已实现熔断降级逻辑
+
+
+### 7. 与RestTemplate对比
+| 特性 | OpenFeign | RestTemplate |
+|------|-----------|--------------|
+| 声明式 | ✅ 接口注解 | ❌ 代码调用 |
+| 负载均衡 | ✅ 自动集成 | ✅ 需@LoadBalanced |
+| 熔断降级 | ✅ 原生支持 | ❌ 需额外配置 |
+| 代码简洁性 | ✅ 高 | ❌ 低 |
+| 日志调试 | ✅ 详细完整 | ❌ 需手动配置 |
+| 测试验证 | ✅ 已完成正常调用测试 | - |
+
+---
+
+## 共享API模块说明
+
+### 1. 模块结构
+```
+microservice-api/
+├── src/main/java/org/example/api/dto/
+│   ├── OrderDTO.java    # 订单数据对象
+│   └── UserDTO.java     # 用户数据对象
+└── pom.xml
+```
+
+### 2. 实际使用验证
+从测试结果可见，OpenFeign成功调用了用户服务并返回了正确的`UserDTO`对象：
+```json
+{
+  "userInfo": {
+    "id": 6,
+    "name": "模拟用户6",
+    "email": "user6@test.com"
+  }
+}
+```
+
+### 3. 验证结论
+✅ **OpenFeign配置成功**：服务间调用正常  
+✅ **负载均衡生效**：通过服务名`microservice-nacos-user`调用  
+✅ **日志功能正常**：详细日志输出便于调试  
+✅ **API模块有效**：DTO对象在服务间正确传输  
+✅ **响应格式正确**：JSON序列化/反序列化正常
